@@ -104,59 +104,76 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 
 	private void load(String title, String[] args) {
 
-		fileChooser = new JFileChooser();
-		filter = new FileNameExtensionFilter("TXT file", "txt");
-		fileChooser.setFileFilter(filter);
-		fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
-		fileChooser.setCurrentDirectory(new File("."));
-		fileChooser.setDialogTitle("Choose the Topology File");
-		/****/
-		firstInput = true;
-		String file = (args.length < 1) ? selectFile(fileChooser) : args[0];
+		RBR rbr = null;
+		Segmentation sbr = null;
 		
-		//v2
-		fileChooser = new JFileChooser();
-		fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
-		fileChooser.setCurrentDirectory(new File("."));
-		fileChooser.setDialogTitle("Choose the Traffic Files Directory");
-		/****/
-		firstInput = true;
-		String file2 = (args.length < 1) ? selectDirectory(fileChooser) : args[0];
-		
-		String[] NctOptions = {"1", "2"};
-		int Nct = (JOptionPane.showOptionDialog(null, "Choose an Option:", "Nct", 
+		//seleciona o modo multi-cenario
+		int question = JOptionPane.showOptionDialog(null, 
+				"Would you like to execute in multi-scenario mode?", 
+				"Multi-scenario mode", 
 				JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, 
-				null, NctOptions, null)) + 1;
-		//v2
+				null, null, null);
 		
-		createAndShowProgressBarGUI();
-
-		// Carregamento
-		Segmentation sbr = new Segmentation(file);
-		System.out.println("PATH: " + file2);
-		System.out.println("Nct: " + Nct);
-		RBR rbr = new RBR(file,"Restriction.txt", Nct, file2);
-
-		sbr.addProgressEventListener(this);
-		rbr.addProgressEventListener(this);
-
-		sbr.load();
-		rbr.load();
-
-		this.Rbr = rbr;
-		this.sBr = sbr;
-
-		JFrame one = new JFrame();
-		one.pack();
-		insets = one.getInsets();
-		one = null;
-
-		this.setSize(((int)Math.sqrt(this.Rbr.graphSize()) * Measures.SWITCH_FACE) 
+		if(question == 1)
+		{
+			fileChooser = new JFileChooser();
+			filter = new FileNameExtensionFilter("TXT file", "txt");
+			fileChooser.setFileFilter(filter);
+			fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+			fileChooser.setCurrentDirectory(new File("."));
+			fileChooser.setDialogTitle("Choose the Topology File");
+			/****/
+			firstInput = true;
+			String file = (args.length < 1) ? selectFile(fileChooser) : args[0];
+			
+			//v2
+			fileChooser = new JFileChooser();
+			fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+			fileChooser.setCurrentDirectory(new File("."));
+			fileChooser.setDialogTitle("Choose the Traffic Files Directory");
+			/****/
+			firstInput = true;
+			String file2 = (args.length < 1) ? selectDirectory(fileChooser) : args[0];
+			
+			String[] NctOptions = {"1", "2"};
+			int Nct = (JOptionPane.showOptionDialog(null, "Choose an Option:", "Nct", 
+					JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, 
+					null, NctOptions, null)) + 1;
+			//v2
+			
+			createAndShowProgressBarGUI();
+	
+			// Carregamento
+//			Segmentation sbr = new Segmentation(file);
+			sbr = new Segmentation(file);
+			System.out.println("PATH: " + file2);
+			System.out.println("Nct: " + Nct);
+//			RBR rbr = new RBR(file,"Restriction.txt", Nct, file2);
+			rbr = new RBR(file,"Restriction.txt", Nct, file2);
+	
+			sbr.addProgressEventListener(this);
+			rbr.addProgressEventListener(this);
+	
+			sbr.load();
+			rbr.load();
+	
+			this.Rbr = rbr;
+			this.sBr = sbr;
+	
+			JFrame one = new JFrame();
+			one.pack();
+			insets = one.getInsets();
+			one = null;
+		
+			this.setSize(((int)Math.sqrt(this.Rbr.graphSize()) * Measures.SWITCH_FACE) 
 				+ (((int)Math.sqrt(this.Rbr.graphSize()) - 1) * Measures.DISTANCE_BETWEEN_SWITCHES) 
 				+ (2 * Measures.SWITCH_DISTANCE_FROM_PANEL) + insets.right, 
 				((int)Math.sqrt(this.Rbr.graphSize()) * Measures.SWITCH_FACE) 
 				+ (((int)Math.sqrt(this.Rbr.graphSize()) - 1) * Measures.DISTANCE_BETWEEN_SWITCHES) 
 				+ (2 * Measures.SWITCH_DISTANCE_FROM_PANEL) + insets.top + 15);
+		}else{
+			this.setSize(300, 300);
+		}
 
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setMnemonic('F');
@@ -220,31 +237,34 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		JMenuItem scenarioInfo = new JMenuItem("Scenario Information");
 		scenarioInfo.setMnemonic('I');
 		viewMenu.add(scenarioInfo);
-		//pega o RMAX e ARD
-		rmax = 0; 
-		ardSum = 0; 
-		nARD = 0;
-		metrics((int) Math.sqrt(this.Rbr.graphSize()));
-		scenarioInfo.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
-				JOptionPane.showMessageDialog(new JFrame("Scenario Information"),
-						"Topology File Name: " + fileName + "\n" + 
-								"LW: " + String.format("%.3f", Rbr.LinkWeightMean()) + "\n" + 
-								"STD: " + String.format("%.3f", Rbr.LingWeightStdDev()) + "\n" +
-								"RMAX: " + rmax + "\n" + 
-								"ARD: " + String.format("%.3f", Rbr.getArd()) + "\n" + 
-								"Demaged Links: " + demagedLinks + 
-								"\nMinimum Reconfiguration Delay: " + String.format("%.3f", Rbr.getArMin()) + 
-								"\nMaximum Reconfiguration Delay: " + String.format("%.3f", Rbr.getArMax()) + 
-								"\nStandard Deviation of Reconfiguration Delay: " + String.format("%.3f", Rbr.getArStd()) + 
-								"\nMean Reconfiguration Delay: " + String.format("%.3f", Rbr.getAr()),
-								"Scenario Information",
-								JOptionPane.PLAIN_MESSAGE);
-			}
-		});
+		if(question == 1)
+		{
+			//pega o RMAX e ARD
+			rmax = 0; 
+			ardSum = 0; 
+			nARD = 0;
+			metrics((int) Math.sqrt(this.Rbr.graphSize()));
+			scenarioInfo.addActionListener(new ActionListener() {
+	
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					// TODO Auto-generated method stub
+					JOptionPane.showMessageDialog(new JFrame("Scenario Information"),
+							"Topology File Name: " + fileName + "\n" + 
+									"LW: " + String.format("%.3f", Rbr.LinkWeightMean()) + "\n" + 
+									"STD: " + String.format("%.3f", Rbr.LingWeightStdDev()) + "\n" +
+									"RMAX: " + rmax + "\n" + 
+									"ARD: " + String.format("%.3f", Rbr.getArd()) + "\n" + 
+									"Demaged Links: " + demagedLinks + 
+									"\nMinimum Reconfiguration Delay: " + String.format("%.3f", Rbr.getArMin()) + 
+									"\nMaximum Reconfiguration Delay: " + String.format("%.3f", Rbr.getArMax()) + 
+									"\nStandard Deviation of Reconfiguration Delay: " + String.format("%.3f", Rbr.getArStd()) + 
+									"\nMean Reconfiguration Delay: " + String.format("%.3f", Rbr.getAr()),
+									"Scenario Information",
+									JOptionPane.PLAIN_MESSAGE);
+				}
+			});
+		}
 		viewMenu.addSeparator();
 
 		//nomes dos checkboxes
@@ -295,15 +315,33 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 
 		bar.add(helpMenu);
 
-		drawArea = new Drawn(this.Rbr.graphSize(), setLinks(), sbr, rbr);
-		add(drawArea);
+		if(question == 1)
+		{
+			drawArea = new Drawn(this.Rbr.graphSize(), setLinks(), sbr, rbr);
+			add(drawArea);
+			
+			MouseHandler mouse = new MouseHandler();
+			drawArea.addMouseListener(mouse);
+			
+			//desativa o que nao existe
+			showOptions[3].setEnabled(drawArea.anyBridgeLink());
+			showOptions[4].setEnabled(drawArea.anyUnitary());
+		}else{
+			newScenario.setEnabled(false);
+			saveImage.setEnabled(false);
+			scenarioInfo.setEnabled(false);
+			showOptions[0].setEnabled(false);
+			showOptions[1].setEnabled(false);
+			showOptions[2].setEnabled(false);
+			showOptions[3].setEnabled(false);
+			showOptions[4].setEnabled(false);
+			showOptions[5].setEnabled(false);
+			showOptions[6].setEnabled(false);
+			showOptions[7].setEnabled(false);
+		}
+		
 
-		MouseHandler mouse = new MouseHandler();
-		drawArea.addMouseListener(mouse);
-
-		//desativa o que nao existe
-		showOptions[3].setEnabled(drawArea.anyBridgeLink());
-		showOptions[4].setEnabled(drawArea.anyUnitary());
+		
 		/*
 
 		segmentsCheckBox = new JCheckBox("Segments");
