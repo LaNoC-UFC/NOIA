@@ -100,6 +100,7 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 //		setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("nIcon1.png")));		
 		
 		load(title, args);
+		readLCFiles();
 	}
 
 	private void load(String title, String[] args) {
@@ -974,5 +975,19 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		//Display the window.
 		_progressBar.reset();
 		_progressFrame.setVisible(true);
+	}
+	
+	/**
+	 * Read and compute all LC files in a especified folder.
+	 */
+	private void readLCFiles()
+	{
+		//1 - listar todos os arquivos LC
+		//2 - processar cada arquivo e salvar as informacoes
+		//3 - montar o srt.h com as info salvas
+		for(int i = 0; i < 4; i++)
+		{
+			System.out.println("LC file " + i + " read");
+		}
 	}
 }
