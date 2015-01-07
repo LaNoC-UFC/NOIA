@@ -982,12 +982,57 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 	 */
 	private void readLCFiles()
 	{
-		//1 - listar todos os arquivos LC
-		//2 - processar cada arquivo e salvar as informacoes
-		//3 - montar o srt.h com as info salvas
-		for(int i = 0; i < 4; i++)
+		//1 - listar todos os arquivos LC (feito)
+		//2 - processar cada arquivo (feito)
+				
+		File dir = new File("./LCs/");
+		File[] files = dir.listFiles();
+		
+		if(files != null)
 		{
-			System.out.println("LC file " + i + " read");
+			int n = 0;
+			for(File input : files)
+			{
+				
+				RBR rbr = null;
+				Segmentation sbr = null;
+				
+				createAndShowProgressBarGUI();
+				
+				sbr = new Segmentation(input.getAbsolutePath());
+				System.out.println("LC: " + input.getName());
+				rbr = new RBR(input.getAbsolutePath(),"Restriction.txt", -90, "nonNCT");
+		
+				sbr.addProgressEventListener(this);
+				rbr.addProgressEventListener(this);
+		
+				sbr.load();
+				rbr.load();
+				System.out.println("The LC file " + input.getName() + " has been processed.");
+		
+				this.Rbr = rbr;
+				this.sBr = sbr;
+				
+				n++;
+			}
+			
+			System.out.println(n + " LC files processed.");
 		}
+	}
+	
+	/**
+	 * Get the processed information and save in a file.
+	 */
+	private void saveInfo()
+	{
+		//3 - salvar as informacoes
+	}
+	
+	/**
+	 * Get all the saved information and generate the srt.h file.
+	 */
+	private void createSTRFile()
+	{
+		//4 - montar o srt.h com as info salvas
 	}
 }
