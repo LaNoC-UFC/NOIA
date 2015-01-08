@@ -15,7 +15,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
@@ -990,49 +993,87 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		
 		if(files != null)
 		{
-			int n = 0;
-			for(File input : files)
-			{
+			try {
+				PrintWriter printer = new PrintWriter("srt.h", "UTF-8");
+				int n = 0;
 				
-				RBR rbr = null;
-				Segmentation sbr = null;
-				
-				createAndShowProgressBarGUI();
-				
-				sbr = new Segmentation(input.getAbsolutePath());
-				System.out.println("LC: " + input.getName());
-				rbr = new RBR(input.getAbsolutePath(),"Restriction.txt", -90, "nonNCT");
-		
-				sbr.addProgressEventListener(this);
-				rbr.addProgressEventListener(this);
-		
-				sbr.load();
-				rbr.load();
-				System.out.println("The LC file " + input.getName() + " has been processed.");
-		
-				this.Rbr = rbr;
-				this.sBr = sbr;
-				
-				n++;
-			}
+				createSTRFile(printer, "BEGINNING", n);
+				for(File input : files)
+				{
+					
+					RBR rbr = null;
+					Segmentation sbr = null;
+					
+					createAndShowProgressBarGUI();
+					
+					sbr = new Segmentation(input.getAbsolutePath());
+					System.out.println("LC: " + input.getName());
+					rbr = new RBR(input.getAbsolutePath(),"Restriction.txt", -90, "nonNCT");
 			
-			System.out.println(n + " LC files processed.");
+					sbr.addProgressEventListener(this);
+					rbr.addProgressEventListener(this);
+			
+					sbr.load();
+					rbr.load();
+					System.out.println("The LC file " + input.getName() + " has been processed.");
+			
+					this.Rbr = rbr;
+					this.sBr = sbr;
+					
+					createSTRFile(printer, "MIDDLE", n);
+					
+					n++;
+				}
+				
+				System.out.println(n + " LC files processed.");
+				createSTRFile(printer, "END", n);
+				printer.close();
+			
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.out.println("Could not create the file.");
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.out.println("UTF-8 encode format is not supported.");
+			}
 		}
 	}
-	
+		
 	/**
-	 * Get the processed information and save in a file.
+	 * Get all the information and write the srt.h file.
+	 * @param printer Object to write the file.
+	 * @param operation "BEGINNING" to write the header of file, 
+	 * "MIDDLE" to write the informations, "END" to write the end of file.
+	 * @param i Counter of number of LC files.
 	 */
-	private void saveInfo()
-	{
-		//3 - salvar as informacoes
-	}
-	
-	/**
-	 * Get all the saved information and generate the srt.h file.
-	 */
-	private void createSTRFile()
+	private void createSTRFile(PrintWriter printer, String operation, int i)
 	{
 		//4 - montar o srt.h com as info salvas
+		switch(operation){
+		case "BEGINNING":
+			printer.println("#ifndef __SRT_H__");
+			printer.println("#define __SRT_H__");
+			printer.println("#include \"srtm_defs.h\"");
+			printer.println("");
+			printer.println("struct scenarios_routing_table srt[] =\n{");
+			break;
+		case "MIDDLE":
+			if(i == 0){
+				printer.println("\t{");
+			}else{
+				printer.println(",\n\t{");
+			}
+			printer.println("\t-- Linha de teste --");
+			printer.print("\n\t}");
+			break;
+		case "END":
+			printer.println("\n};");
+			printer.println("#endif");
+			break;
+		default:
+			System.out.println("-- Escrita de teste --");
+		}
 	}
 }
