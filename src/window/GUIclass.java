@@ -1054,26 +1054,128 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		switch(operation){
 		case "BEGINNING":
 			printer.println("#ifndef __SRT_H__");
-			printer.println("#define __SRT_H__");
-			printer.println("#include \"srtm_defs.h\"");
-			printer.println("");
+			printer.println("#define __SRT_H__\n");
+			printer.println("#include \"srtm_defs.h\"\n");
 			printer.println("struct scenarios_routing_table srt[] =\n{");
 			break;
 		case "MIDDLE":
 			if(i == 0){
-				printer.println("\t{");
+				printer.print("\t{");
+				printer.println("/* cenario " + i + " */");
 			}else{
-				printer.println(",\n\t{");
+				printer.print(",\n\t{");
+				printer.println("/* cenario " + i + " */");
 			}
-			printer.println("\t-- Linha de teste --");
-			printer.print("\n\t}");
+			
+			printer.println("\t\t{/*vetor de gft*/");
+			writeSwitches(printer);
+			printer.println("\n\t\t},");
+			
+			printer.println("\t\t{ /*vetor de pxrt*/");
+			printer.println("\t\t},");
+			
+			printer.println("\t\t{ /*vetor de metrics*/");
+			printer.println("\t\t\t{" + Rbr.getArd() + ", " + 
+					Rbr.LinkWeightMean() + ", " + Rbr.LingWeightStdDev() + "}");
+			printer.println("\t\t}");
+			
+			printer.print("\t}");
 			break;
 		case "END":
-			printer.println("\n};");
+			printer.println("\n};\n");
 			printer.println("#endif");
 			break;
 		default:
 			System.out.println("-- Escrita de teste --");
 		}
+	}
+	
+	/**
+	 * Use to print the switches information.
+	 * @param printer Objecto to print in file.
+	 */
+	private void writeSwitches(PrintWriter printer)
+	{
+		
+		for(int y = 0; y < Math.sqrt(Rbr.graphSize()); y++)
+		{
+			for(int x = 0; x < Math.sqrt(Rbr.graphSize()); x++)
+			{
+				if((x == 0) && (y == 0))
+				{
+					printer.println("\t\t\t{/*switch " + sBr.get("" + x + y).getNome() + "*/");
+				}else{
+					printer.println(",\n\t\t\t{/*switch " + sBr.get("" + x + y).getNome() + "*/");
+				}
+				
+				writeChannels(printer, sBr.get("" + x + y).getLinks(), x, y);
+				printer.print("\t\t\t}");
+			}
+		}
+	}
+	
+	/**
+	 * Print the channels information of a switch.
+	 * @param printer Object to print in file.
+	 * @param links Links of a switch.
+	 * @param x X coordinate of the switch.
+	 * @param y Y coordinate of the switch.
+	 */
+	private void writeChannels(PrintWriter printer, Iterable<sbr.Link> links, int x, int y)
+	{
+		boolean brokenLink = true;
+		String[] actives = {"", "", "", ""};
+		int i = 0;
+		
+		for(sbr.Link link : links)
+		{
+			if(link.getDestino().getNome().equals("" + (x + 1) + y))
+			{
+				actives[0] = link.getDestino().getNome();
+			}else if(link.getDestino().getNome().equals("" + (x - 1) + y))
+			{
+				actives[1] = link.getDestino().getNome();
+			}else if(link.getDestino().getNome().equals("" + x + (y + 1)))
+			{
+				actives[2] = link.getDestino().getNome();
+			}else if(link.getDestino().getNome().equals("" + x + (y - 1)))
+			{
+				actives[3] = link.getDestino().getNome();
+			}
+			
+			i++;
+		}
+		
+		for(i = 0; i < 4; i++)
+		{
+			if(actives[i].equals("" + (x - 1) + y))
+			{
+				printer.println("\t\t\t\t{1,0,0,0}, /*" + x + y + 
+						" -> " + actives[i] + "*/");
+				brokenLink = false;
+			}else if(actives[i].equals("" + (x + 1) + y))
+			{
+				printer.println("\t\t\t\t{1,0,0,0}, /*" + x + y + 
+						" -> " + actives[i] + "*/");
+				brokenLink = false;
+			}else if(actives[i].equals("" + x + (y + 1)))
+			{
+				printer.println("\t\t\t\t{1,0,0,0}, /*" + x + y + 
+						" -> " + actives[i] + "*/");
+				brokenLink = false;
+			}else if(actives[i].equals("" + x + (y - 1)))
+			{
+				printer.println("\t\t\t\t{1,0,0,0}, /*" + x + y + 
+						" -> " + actives[i] + "*/");
+				brokenLink = false;
+			}
+			
+			if(brokenLink)
+			{
+				printer.println("\t\t\t\t{0,0,0,0}");
+			}
+			brokenLink = true;
+		}
+		
 	}
 }
