@@ -2,6 +2,7 @@ package window;
 
 import java.awt.BorderLayout;
 import java.awt.CheckboxMenuItem;
+import java.awt.Color;
 import java.awt.Dialog.ModalityType;
 import java.awt.GridLayout;
 import java.awt.Insets;
@@ -19,7 +20,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -85,6 +89,7 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 	private boolean firstInput;
 	private Insets insets;
 	private ProgressBar progressBar;
+	private int question;
 
 	public void reportProgress(ProgressEvent progress)
 	{
@@ -103,7 +108,12 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 //		setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("nIcon1.png")));		
 		
 		load(title, args);
-		readLCFiles();
+		
+		if(question == 0)
+		{
+			readLCFiles();
+		}
+		
 	}
 
 	private void load(String title, String[] args) {
@@ -112,7 +122,7 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		Segmentation sbr = null;
 		
 		//seleciona o modo multi-cenario
-		int question = JOptionPane.showOptionDialog(null, 
+		question = JOptionPane.showOptionDialog(null, 
 				"Would you like to execute in multi-scenario mode?", 
 				"Multi-scenario mode", 
 				JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, 
@@ -983,7 +993,7 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 	/**
 	 * Read and compute all LC files in a especified folder.
 	 */
-	private void readLCFiles()
+	private int readLCFiles()
 	{
 		//1 - listar todos os arquivos LC (feito)
 		//2 - processar cada arquivo (feito)
@@ -1028,6 +1038,8 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				System.out.println(n + " LC files processed.");
 				createSTRFile(printer, "END", n);
 				printer.close();
+				
+				return n;
 			
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
@@ -1039,6 +1051,8 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				System.out.println("UTF-8 encode format is not supported.");
 			}
 		}
+		
+		return (-1);
 	}
 		
 	/**
@@ -1061,10 +1075,12 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		case "MIDDLE":
 			if(i == 0){
 				printer.print("\t{");
-				printer.println("/* cenario " + i + " */");
+				printer.println("/* cenario " + i + " " + (int)Math.sqrt(Rbr.graphSize()) + 
+						"x" + (int)Math.sqrt(Rbr.graphSize()) + "*/");
 			}else{
 				printer.print(",\n\t{");
-				printer.println("/* cenario " + i + " */");
+				printer.println("/* cenario " + i + " " + (int)Math.sqrt(Rbr.graphSize()) + 
+						"x" + (int)Math.sqrt(Rbr.graphSize()) + "*/");
 			}
 			
 			printer.println("\t\t{/*vetor de gft*/");
@@ -1072,11 +1088,15 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 			printer.println("\n\t\t},");
 			
 			printer.println("\t\t{ /*vetor de pxrt*/");
-			printer.println("\t\t},");
+			writeRegions(printer);
+			printer.println("\n\t\t},");
 			
 			printer.println("\t\t{ /*vetor de metrics*/");
-			printer.println("\t\t\t{" + Rbr.getArd() + ", " + 
-					Rbr.LinkWeightMean() + ", " + Rbr.LingWeightStdDev() + "}");
+			NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
+			DecimalFormat df = (DecimalFormat)nf;
+			printer.println("\t\t\t{" + df.format(Rbr.getArd()) + ", " + 
+					df.format(Rbr.LinkWeightMean()) + ", " + 
+					df.format(Rbr.LingWeightStdDev()) + "}");
 			printer.println("\t\t}");
 			
 			printer.print("\t}");
@@ -1104,11 +1124,14 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				if((x == 0) && (y == 0))
 				{
 					printer.println("\t\t\t{/*switch " + sBr.get("" + x + y).getNome() + "*/");
+					printer.println("\t\t\t\t{");
 				}else{
 					printer.println(",\n\t\t\t{/*switch " + sBr.get("" + x + y).getNome() + "*/");
+					printer.println("\t\t\t\t{");
 				}
 				
 				writeChannels(printer, sBr.get("" + x + y).getLinks(), x, y);
+				printer.println("\t\t\t\t}");
 				printer.print("\t\t\t}");
 			}
 		}
@@ -1126,56 +1149,195 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		boolean brokenLink = true;
 		String[] actives = {"", "", "", ""};
 		int i = 0;
+		int n = 0;
 		
 		for(sbr.Link link : links)
 		{
 			if(link.getDestino().getNome().equals("" + (x + 1) + y))
 			{
 				actives[0] = link.getDestino().getNome();
+				n++;
 			}else if(link.getDestino().getNome().equals("" + (x - 1) + y))
 			{
 				actives[1] = link.getDestino().getNome();
+				n++;
 			}else if(link.getDestino().getNome().equals("" + x + (y + 1)))
 			{
 				actives[2] = link.getDestino().getNome();
+				n++;
 			}else if(link.getDestino().getNome().equals("" + x + (y - 1)))
 			{
 				actives[3] = link.getDestino().getNome();
+				n++;
 			}
 			
-			i++;
 		}
 		
 		for(i = 0; i < 4; i++)
 		{
 			if(actives[i].equals("" + (x - 1) + y))
 			{
-				printer.println("\t\t\t\t{1,0,0,0}, /*" + x + y + 
+				printer.print("\t\t\t\t\t{1,0,0,0}");
+				if((n - 1) > 0)
+				{
+					printer.print(",");
+				}
+				printer.println(" /*" + x + y + 
 						" -> " + actives[i] + "*/");
+				n--;
 				brokenLink = false;
 			}else if(actives[i].equals("" + (x + 1) + y))
 			{
-				printer.println("\t\t\t\t{1,0,0,0}, /*" + x + y + 
+				printer.print("\t\t\t\t\t{1,0,0,0}");
+				if((n - 1) > 0)
+				{
+					printer.print(",");
+				}
+				printer.println(" /*" + x + y + 
 						" -> " + actives[i] + "*/");
+				n--;
 				brokenLink = false;
 			}else if(actives[i].equals("" + x + (y + 1)))
 			{
-				printer.println("\t\t\t\t{1,0,0,0}, /*" + x + y + 
+				printer.print("\t\t\t\t\t{1,0,0,0}");
+				if((n - 1) > 0)
+				{
+					printer.print(",");
+				}
+				printer.println(" /*" + x + y + 
 						" -> " + actives[i] + "*/");
+				n--;
 				brokenLink = false;
 			}else if(actives[i].equals("" + x + (y - 1)))
 			{
-				printer.println("\t\t\t\t{1,0,0,0}, /*" + x + y + 
+				printer.println("\t\t\t\t\t{1,0,0,0} /*" + x + y + 
 						" -> " + actives[i] + "*/");
 				brokenLink = false;
 			}
 			
 			if(brokenLink)
 			{
-				printer.println("\t\t\t\t{0,0,0,0}");
+				switch(i)
+				{
+				case 0:
+					if((x + 1) < (Math.sqrt(Rbr.graphSize()) - 1))
+					{
+						printer.println("\t\t\t\t\t{0,0,0,0}, /*" + x + y +
+								" -> " + (x + 1) + y +"*/");
+					}
+					break;
+				case 1:
+					if((x - 1) > 0)
+					{
+						printer.println("\t\t\t\t\t{0,0,0,0}, /*" + x + y +
+								" -> " + (x - 1) + y +"*/");
+					}
+					break;
+				case 2:
+					if((y + 1) < (Math.sqrt(Rbr.graphSize()) - 1))
+					{
+						printer.println("\t\t\t\t\t{0,0,0,0}, /*" + x + y +
+								" -> " + x + (y + 1) +"*/");
+					}
+					break;
+				case 3:
+					if((y - 1) > 0)
+					{
+						printer.println("\t\t\t\t\t{0,0,0,0} /*" + x + y +
+								" -> " + x + (y - 1) +"*/");
+					}
+					break;
+				}
 			}
 			brokenLink = true;
 		}
 		
+	}
+	
+	/**
+	 * Write the regions of each switch.
+	 * @param printer Object the prints in a file.
+	 */
+	private void writeRegions(PrintWriter printer)
+	{
+		for(int y = 0; y < Math.sqrt(Rbr.graphSize()); y++)
+		{
+			for(int x = 0; x < Math.sqrt(Rbr.graphSize()); x++)
+			{
+				if((x == 0) && (y == 0))
+				{
+					printer.println("\t\t\t{/*switch " + Rbr.get("" + x + y).getNome() + "*/");
+					printer.println("\t\t\t\t{");
+				}else{
+					printer.println(",\n\t\t\t{/*switch " + sBr.get("" + x + y).getNome() + "*/");
+					printer.println("\t\t\t\t{");
+				}
+				
+				int i = 0;
+				for(rbr.Region region : Rbr.get("" + x + y).regions())
+				{
+					if(i == 0)
+					{
+						printer.print("\t\t\t\t\t{" + getPortName("" + region.getIp().charAt(0)) + "," + 
+								hexInC(Integer.toHexString((Integer.parseInt(region.getDownLeft())))) + "," + 
+								hexInC(Integer.toHexString((Integer.parseInt(region.getUpRight())))) + "," +
+								getPortName("" + region.getOp().charAt(0)) + "}");
+					}else{
+						printer.print(",\n\t\t\t\t\t{" + getPortName("" + region.getIp().charAt(0)) + "," + 
+								hexInC(Integer.toHexString((Integer.parseInt(region.getDownLeft())))) + "," + 
+								hexInC(Integer.toHexString((Integer.parseInt(region.getUpRight())))) + "," +
+								getPortName("" + region.getOp().charAt(0)) + "}");
+					}
+					
+//					printer.println("\t\t\t\t\tgetIp = " + region.getIp());
+//					printer.println("\t\t\t\t\tgetOp = " + region.getOp());
+					i++;
+				}
+				printer.println("\n\t\t\t\t}");
+				printer.print("\t\t\t}");
+			}
+		}
+		
+	}
+	
+	/**
+	 * Return the port name of the letter. 
+	 * @param s String letter.
+	 * @return The port name.
+	 */
+	private String getPortName(String s)
+	{
+		switch(s)
+		{
+		case "N": 
+			return "NORTH";
+		case "S":
+			return "SOUTH";
+		case "E":
+			return "EAST";
+		case "W":
+			return "WEST";
+		case "I":
+			return "LOCAL";
+		default:
+			return "UNKNOWN";
+		}
+		
+	}
+	
+	/**
+	 * Transform the java hexadecimal number to C hexadecimal number.
+	 * @param hex Decimal number.
+	 * @return Hexadecimal in C notation;
+	 */
+	private String hexInC(String hex)
+	{
+		if(hex.length() < 2)
+		{
+			hex = "0x0" + hex;
+		}else{
+			hex = "0x" + hex;
+		}
+		return hex;
 	}
 }
