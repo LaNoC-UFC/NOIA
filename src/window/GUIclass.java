@@ -1084,8 +1084,11 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 			}
 			
 			printer.println("\t\t{/*vetor de gft*/");
-			writeSwitches(printer);
-			printer.println("\n\t\t},");
+//			writeSwitches(printer);
+			printer.println("\t\t\t/*number of links: " + (int)(2 * (Math.sqrt(Rbr.graphSize()) * 
+					(Math.sqrt(Rbr.graphSize()) - 1))) + "*/");
+			writeScenarioLinks(printer);
+			printer.println("\t\t},");
 			
 			printer.println("\t\t{ /*vetor de pxrt*/");
 			writeRegions(printer);
@@ -1110,6 +1113,83 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		}
 	}
 	
+	private void writeScenarioLinks(PrintWriter printer)
+	{
+		
+		int i = 0;
+		
+		for(int y = 0; y < Math.sqrt(Rbr.graphSize()); y++)
+		{
+			for(int x = 0; x < Math.sqrt(Rbr.graphSize()); x++)
+			{
+				i = writeLinkStatus(printer, i, false, x, y);
+			}
+		}
+		
+		for(int x = 0; x < Math.sqrt(Rbr.graphSize()); x++)
+		{
+			for(int y = 0; y < Math.sqrt(Rbr.graphSize()); y++)
+			{
+				i = writeLinkStatus(printer, i, true, x, y);
+			}
+		}
+		
+	}
+	
+	private int writeLinkStatus(PrintWriter printer, int index, boolean orientation, int x, int y)
+	{
+		int nLinks = (int)((2 * (Math.sqrt(Rbr.graphSize()) * 
+				(Math.sqrt(Rbr.graphSize()) - 1))));
+		if((!orientation) && (x < (Math.sqrt(Rbr.graphSize()) - 1))) //west > east
+		{
+			for(rbr.Link ch : Rbr.links())
+			{
+				if(ch.getOrigem().getNome().equals("" + x + y) && 
+							ch.getDestino().getNome().equals("" + (x + 1) + y))
+				{
+					if(index < (nLinks - 1))
+					{
+						printer.println("\t\t\t{1,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
+					}else{
+						printer.println("\t\t\t{1,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
+					}
+					return (index + 1);
+				}
+			}
+			if(index < (nLinks - 1))
+			{
+				printer.println("\t\t\t{0,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
+			}else{
+				printer.println("\t\t\t{0,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
+			}
+			return (index + 1);
+			
+		}else if((orientation) && (y < (Math.sqrt(Rbr.graphSize()) - 1))){ //south -> north
+			for(rbr.Link ch : Rbr.links())
+			{
+				if(ch.getOrigem().getNome().equals("" + x + y) && 
+							ch.getDestino().getNome().equals("" + x + (y + 1)))
+				{
+					if(index < (nLinks - 1))
+					{
+						printer.println("\t\t\t{1,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
+					}else{
+						printer.println("\t\t\t{1,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
+					}
+					return (index + 1);
+				}
+			}
+			if(index < (nLinks - 1))
+			{
+				printer.println("\t\t\t{0,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
+			}else{
+				printer.println("\t\t\t{0,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
+			}
+			return (index + 1);
+		}
+		return index;
+	}
+	
 	/**
 	 * Use to print the switches information.
 	 * @param printer Objecto to print in file.
@@ -1130,7 +1210,11 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 					printer.println("\t\t\t\t{");
 				}
 				
-				writeChannels(printer, sBr.get("" + x + y).getLinks(), x, y);
+//				writeChannels(printer, sBr.get("" + x + y).getLinks(), x, y);
+				for(rbr.Link ch: Rbr.links())
+				{
+					printer.println("\t\t\t\t\t/*" + ch.getOrigem().getNome() + " -> " + ch.getDestino().getNome() + "*/");
+				}
 				printer.println("\t\t\t\t}");
 				printer.print("\t\t\t}");
 			}
