@@ -1113,6 +1113,10 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		}
 	}
 	
+	/**
+	 * Print all the links in sequence.
+	 * @param printer The object to write in file.
+	 */
 	private void writeScenarioLinks(PrintWriter printer)
 	{
 		
@@ -1136,6 +1140,15 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		
 	}
 	
+	/**
+	 * Used to write all the links in order based on the parameters.
+	 * @param printer Object to write in file.
+	 * @param index Index of each link (0 - (Number of links - 1)).
+	 * @param orientation False, if horizontal. True if vertical.
+	 * @param x X coordinate.
+	 * @param y Y coordinate.
+	 * @return The index updated.
+	 */
 	private int writeLinkStatus(PrintWriter printer, int index, boolean orientation, int x, int y)
 	{
 		int nLinks = (int)((2 * (Math.sqrt(Rbr.graphSize()) * 
