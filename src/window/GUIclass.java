@@ -1162,18 +1162,18 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				{
 					if(index < (nLinks - 1))
 					{
-						printer.println("\t\t\t{1,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
+						printer.println("\t\t\t{0,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
 					}else{
-						printer.println("\t\t\t{1,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
+						printer.println("\t\t\t{0,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
 					}
 					return (index + 1);
 				}
 			}
 			if(index < (nLinks - 1))
 			{
-				printer.println("\t\t\t{0,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
+				printer.println("\t\t\t{1,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
 			}else{
-				printer.println("\t\t\t{0,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
+				printer.println("\t\t\t{1,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
 			}
 			return (index + 1);
 			
@@ -1185,18 +1185,18 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				{
 					if(index < (nLinks - 1))
 					{
-						printer.println("\t\t\t{1,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
+						printer.println("\t\t\t{0,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
 					}else{
-						printer.println("\t\t\t{1,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
+						printer.println("\t\t\t{0,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
 					}
 					return (index + 1);
 				}
 			}
 			if(index < (nLinks - 1))
 			{
-				printer.println("\t\t\t{0,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
+				printer.println("\t\t\t{1,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
 			}else{
-				printer.println("\t\t\t{0,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
+				printer.println("\t\t\t{1,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
 			}
 			return (index + 1);
 		}
