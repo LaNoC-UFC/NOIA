@@ -361,7 +361,7 @@ public HashMap<String, Double[]> Ar = new HashMap<>(); //[0] NFI; [1] Lpath; [2]
 		try {
 			BufferedWriter bw = new BufferedWriter(new FileWriter(routingTable));
 			bw.append("library IEEE;\nuse ieee.std_logic_1164.all;\nuse ieee.numeric_std.all;\n"
-					+ "use work.HermesPackage.all;\n\npackage TablePackage is\n\nconstant NREG : "
+					+ "use work.PhoenixPackage.all;\n\npackage TablePackage is\n\nconstant NREG : "
 					+ "integer := "
 					+ (int) stats[0]
 					+ ";\nconstant MEMORY_SIZE : integer := NREG;\n\ntype memory is "

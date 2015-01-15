@@ -1123,29 +1123,29 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 			printer.println("#ifndef __SRT_H__");
 			printer.println("#define __SRT_H__\n");
 			printer.println("#include \"srtm_defs.h\"\n");
-			printer.println("struct scenarios_routing_table srt[] =\n{");
+			printer.println("struct scenarios_routing_table srt[] =\n{{");
 			break;
 		case "MIDDLE":
 			if(i == 0){
-				printer.print("\t{");
+				printer.print("\t{{");
 				printer.println("/* cenario " + i + " " + (int)Math.sqrt(Rbr.graphSize()) + 
 						"x" + (int)Math.sqrt(Rbr.graphSize()) + "*/");
 			}else{
-				printer.print(",\n\t{");
+				printer.print(",\n\t{{");
 				printer.println("/* cenario " + i + " " + (int)Math.sqrt(Rbr.graphSize()) + 
 						"x" + (int)Math.sqrt(Rbr.graphSize()) + "*/");
 			}
 			
-			printer.println("\t\t{/*vetor de gft*/");
+			printer.println("\t\t{{/*vetor de gft*/");
 //			writeSwitches(printer);
 			printer.println("\t\t\t/*number of links: " + (int)(2 * (Math.sqrt(Rbr.graphSize()) * 
 					(Math.sqrt(Rbr.graphSize()) - 1))) + "*/");
 			writeScenarioLinks(printer);
-			printer.println("\t\t},");
+			printer.println("\t\t}},");
 			
-			printer.println("\t\t{ /*vetor de pxrt*/");
-			writeRegions(printer, maxRegions);
-			printer.println("\n\t\t},");
+			printer.println("\t\t{{/*vetor de pxrt*/");
+			writeRegions(printer, maxRegions, maxRegions);
+			printer.println("\n\t\t}},");
 			
 			printer.println("\t\t{ /*vetor de metrics*/");
 			NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
@@ -1155,10 +1155,10 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 					df.format(Rbr.LingWeightStdDev()) + "}");
 			printer.println("\t\t}");
 			
-			printer.print("\t}");
+			printer.print("\t}}");
 			break;
 		case "END":
-			printer.println("\n};\n");
+			printer.println("\n}};\n");
 			printer.println("#endif");
 			break;
 		default:
@@ -1408,7 +1408,7 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 	 * Write the regions of each switch.
 	 * @param printer Object the prints in a file.
 	 */
-	private void writeRegions(PrintWriter printer, int maxReg)
+	private void writeRegions(PrintWriter printer, int maxReg, int max)
 	{
 		for(int y = 0; y < Math.sqrt(Rbr.graphSize()); y++)
 		{
@@ -1416,11 +1416,11 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 			{
 				if((x == 0) && (y == 0))
 				{
-					printer.println("\t\t\t{/*switch " + Rbr.get("" + x + y).getNome() + "*/");
-					printer.println("\t\t\t\t{");
+					printer.println("\t\t\t{{/*switch " + Rbr.get("" + x + y).getNome() + "*/");
+//					printer.println("\t\t\t\t{");
 				}else{
-					printer.println(",\n\t\t\t{/*switch " + sBr.get("" + x + y).getNome() + "*/");
-					printer.println("\t\t\t\t{");
+					printer.println(",\n\t\t\t{{/*switch " + sBr.get("" + x + y).getNome() + "*/");
+//					printer.println("\t\t\t\t{");
 				}
 				
 				int i = 0;
@@ -1428,12 +1428,12 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				{
 					if(i == 0)
 					{
-						printer.print("\t\t\t\t\t{" + getPortName("" + region.getIp().charAt(0)) + "," + 
+						printer.print("\t\t\t\t{" + getPortName("" + region.getIp().charAt(0)) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getDownLeft())))) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getUpRight())))) + "," +
 								getPortName("" + region.getOp().charAt(0)) + "}");
 					}else{
-						printer.print(",\n\t\t\t\t\t{" + getPortName("" + region.getIp().charAt(0)) + "," + 
+						printer.print(",\n\t\t\t\t{" + getPortName("" + region.getIp().charAt(0)) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getDownLeft())))) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getUpRight())))) + "," +
 								getPortName("" + region.getOp().charAt(0)) + "}");
@@ -1443,9 +1443,15 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 //					printer.println("\t\t\t\t\tgetOp = " + region.getOp());
 					i++;
 				}
+				while(i < max)
+				{
+					printer.println(",");
+					printer.print("\t\t\t\t{NULL,0xff,0xff,NULL}");
+					i++;
+				}
 				
-				printer.println("\n\t\t\t\t}");
-				printer.print("\t\t\t}");
+//				printer.println("\n\t\t\t\t}");
+				printer.print("\n\t\t\t}}");
 				if(i == maxReg)
 				{
 					copyFile(new File("./Table_package.vhd"), 
