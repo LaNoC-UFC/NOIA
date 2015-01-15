@@ -16,10 +16,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.channels.FileChannel;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -1004,10 +1007,11 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		if(files != null)
 		{
 			try {
+				int maxRegions = getMaxRegions(files);
 				PrintWriter printer = new PrintWriter("srt.h", "UTF-8");
 				int n = 0;
-				
-				createSTRFile(printer, "BEGINNING", n);
+				printer.println("/*MAX REG = " + maxRegions + "*/");
+				createSTRFile(printer, "BEGINNING", n, maxRegions);
 				for(File input : files)
 				{
 					
@@ -1030,13 +1034,13 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 					this.Rbr = rbr;
 					this.sBr = sbr;
 					
-					createSTRFile(printer, "MIDDLE", n);
+					createSTRFile(printer, "MIDDLE", n, maxRegions);
 					
 					n++;
 				}
 				
 				System.out.println(n + " LC files processed.");
-				createSTRFile(printer, "END", n);
+				createSTRFile(printer, "END", n, maxRegions);
 				printer.close();
 				
 				return n;
@@ -1054,6 +1058,54 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		
 		return (-1);
 	}
+	
+	/**
+	 * Used to count the maximum number of regions.
+	 * @param files Vector of files.
+	 * @return The maximum number of regions.
+	 */
+	private int getMaxRegions(File[] files)
+	{
+		int maximum = 0;
+		int counter = 0;
+		
+		for(File input : files)
+		{
+			RBR rbrz = null;
+			Segmentation sbrz = null;
+			
+			createAndShowProgressBarGUI();
+			
+			sbrz = new Segmentation(input.getAbsolutePath());
+			System.out.println("LC: " + input.getName());
+			rbrz = new RBR(input.getAbsolutePath(),"Restriction.txt", -90, "nonNCT");
+	
+			sbrz.addProgressEventListener(this);
+			rbrz.addProgressEventListener(this);
+	
+			sbrz.load();
+			rbrz.load();
+			System.out.println("The LC file " + input.getName() + " has been processed.");
+	
+			this.Rbr = rbrz;
+			this.sBr = sbrz;
+			
+			for(rbr.Router sw : Rbr.switches())
+			{
+				for(rbr.Region reg : sw.regions())
+				{
+					counter++;
+				}
+				if(counter > maximum)
+				{
+					maximum = counter;
+				}
+				counter = 0;
+			}
+		}
+		
+		return maximum;
+	}
 		
 	/**
 	 * Get all the information and write the srt.h file.
@@ -1062,9 +1114,10 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 	 * "MIDDLE" to write the informations, "END" to write the end of file.
 	 * @param i Counter of number of LC files.
 	 */
-	private void createSTRFile(PrintWriter printer, String operation, int i)
+	private void createSTRFile(PrintWriter printer, String operation, int i, int maxRegions)
 	{
-		//4 - montar o srt.h com as info salvas
+		
+		//4 - montar o srt.h com as info salvas (feito)
 		switch(operation){
 		case "BEGINNING":
 			printer.println("#ifndef __SRT_H__");
@@ -1091,7 +1144,7 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 			printer.println("\t\t},");
 			
 			printer.println("\t\t{ /*vetor de pxrt*/");
-			writeRegions(printer);
+			writeRegions(printer, maxRegions);
 			printer.println("\n\t\t},");
 			
 			printer.println("\t\t{ /*vetor de metrics*/");
@@ -1355,7 +1408,7 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 	 * Write the regions of each switch.
 	 * @param printer Object the prints in a file.
 	 */
-	private void writeRegions(PrintWriter printer)
+	private void writeRegions(PrintWriter printer, int maxReg)
 	{
 		for(int y = 0; y < Math.sqrt(Rbr.graphSize()); y++)
 		{
@@ -1390,11 +1443,44 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 //					printer.println("\t\t\t\t\tgetOp = " + region.getOp());
 					i++;
 				}
+				
 				printer.println("\n\t\t\t\t}");
 				printer.print("\t\t\t}");
+				if(i == maxReg)
+				{
+					copyFile(new File("./Table_package.vhd"), 
+							new File("./Table_package_MAX.vhd"));
+					
+				}
 			}
 		}
+	}
+	
+	/**
+	 * Copy the specified file to another.
+	 * @param target Target file to be copied.
+	 * @param copyName Clone file name.
+	 */
+	private void copyFile(File target, File clone)
+	{
+		FileChannel input = null, output = null;
 		
+		try {
+			input = new FileInputStream(target).getChannel();
+			output = new FileOutputStream(clone).getChannel();
+			
+			output.transferFrom(input, 0, input.size());
+			
+			input.close();
+			output.close();
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	/**
