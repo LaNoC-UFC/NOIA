@@ -1123,47 +1123,59 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 			printer.println("#ifndef __SRT_H__");
 			printer.println("#define __SRT_H__\n");
 			printer.println("#include \"srtm_defs.h\"\n");
-			printer.println("struct scenarios_routing_table srt[] =\n{{");
+			printer.println("struct scenarios_routing_table srt[] =\n{");
 			break;
 		case "MIDDLE":
 			if(i == 0){
-				printer.print("\t{{");
+				printer.print("\t{");
 				printer.println("/* cenario " + i + " " + (int)Math.sqrt(Rbr.graphSize()) + 
 						"x" + (int)Math.sqrt(Rbr.graphSize()) + "*/");
 			}else{
-				printer.print(",\n\t{{");
+				printer.print(",\n\t{");
 				printer.println("/* cenario " + i + " " + (int)Math.sqrt(Rbr.graphSize()) + 
 						"x" + (int)Math.sqrt(Rbr.graphSize()) + "*/");
 			}
 			
-			printer.println("\t\t{{/*vetor de gft*/");
+			printer.println("\t\t{/*vetor de gft*/");
 //			writeSwitches(printer);
 			printer.println("\t\t\t/*number of links: " + (int)(2 * (Math.sqrt(Rbr.graphSize()) * 
 					(Math.sqrt(Rbr.graphSize()) - 1))) + "*/");
 			writeScenarioLinks(printer);
-			printer.println("\t\t}},");
+			printer.println("\t\t},");
 			
-			printer.println("\t\t{{/*vetor de pxrt*/");
+			printer.println("\t\t{/*vetor de pxrt*/");
 			writeRegions(printer, maxRegions, maxRegions);
-			printer.println("\n\t\t}},");
+			printer.println("\n\t\t},");
 			
 			printer.println("\t\t{ /*vetor de metrics*/");
 			NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
 			DecimalFormat df = (DecimalFormat)nf;
-			printer.println("\t\t\t{" + df.format(Rbr.getArd()) + ", " + 
-					df.format(Rbr.LinkWeightMean()) + ", " + 
-					df.format(Rbr.LingWeightStdDev()) + "}");
+			printer.println("\t\t\t{" + doubleToInt(df.format(Rbr.getArd())) + "},");
+			printer.println("\t\t\t{" + doubleToInt(df.format(Rbr.LinkWeightMean())) + "},");
+			printer.println("\t\t\t{" + doubleToInt(df.format(Rbr.LingWeightStdDev())) + "}");
 			printer.println("\t\t}");
 			
-			printer.print("\t}}");
+			printer.print("\t}");
 			break;
 		case "END":
-			printer.println("\n}};\n");
+			printer.println("\n};\n");
 			printer.println("#endif");
 			break;
 		default:
 			System.out.println("-- Escrita de teste --");
 		}
+	}
+	
+	/**
+	 * Transform the double that already is in string format to an int times 10000.
+	 * @param s Number.
+	 * @return int value.
+	 */
+	private int doubleToInt(String s)
+	{
+		double d = Double.valueOf(s);
+		d = d * 10000;
+		return (int) d;
 	}
 	
 	/**
@@ -1416,11 +1428,11 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 			{
 				if((x == 0) && (y == 0))
 				{
-					printer.println("\t\t\t{{/*switch " + Rbr.get("" + x + y).getNome() + "*/");
-//					printer.println("\t\t\t\t{");
+					printer.println("\t\t\t{/*switch " + Rbr.get("" + x + y).getNome() + "*/");
+					printer.println("\t\t\t\t{");
 				}else{
-					printer.println(",\n\t\t\t{{/*switch " + sBr.get("" + x + y).getNome() + "*/");
-//					printer.println("\t\t\t\t{");
+					printer.println(",\n\t\t\t{/*switch " + sBr.get("" + x + y).getNome() + "*/");
+					printer.println("\t\t\t\t{");
 				}
 				
 				int i = 0;
@@ -1428,12 +1440,12 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				{
 					if(i == 0)
 					{
-						printer.print("\t\t\t\t{" + getPortName("" + region.getIp().charAt(0)) + "," + 
+						printer.print("\t\t\t\t\t{" + getPortName("" + region.getIp().charAt(0)) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getDownLeft())))) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getUpRight())))) + "," +
 								getPortName("" + region.getOp().charAt(0)) + "}");
 					}else{
-						printer.print(",\n\t\t\t\t{" + getPortName("" + region.getIp().charAt(0)) + "," + 
+						printer.print(",\n\t\t\t\t\t{" + getPortName("" + region.getIp().charAt(0)) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getDownLeft())))) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getUpRight())))) + "," +
 								getPortName("" + region.getOp().charAt(0)) + "}");
@@ -1446,12 +1458,12 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				while(i < max)
 				{
 					printer.println(",");
-					printer.print("\t\t\t\t{NULL,0xff,0xff,NULL}");
+					printer.print("\t\t\t\t\t{NULL,0xff,0xff,NULL}");
 					i++;
 				}
 				
-//				printer.println("\n\t\t\t\t}");
-				printer.print("\n\t\t\t}}");
+				printer.println("\n\t\t\t\t}");
+				printer.print("\n\t\t\t}");
 				if(i == maxReg)
 				{
 					copyFile(new File("./Table_package.vhd"), 
