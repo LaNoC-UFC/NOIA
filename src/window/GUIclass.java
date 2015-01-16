@@ -1441,14 +1441,12 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 					if(i == 0)
 					{
 						printer.print("\t\t\t\t\t{" + getPortListNumber(region.getIp()) + "," + 
-								hexInC(Integer.toHexString((Integer.parseInt(region.getDownLeft())))) + "," + 
-								hexInC(Integer.toHexString((Integer.parseInt(region.getUpRight())))) + "," +
+								hexInC(region.getDownLeft()) + "," + hexInC(region.getUpRight()) + "," +
 								getPortListNumber(region.getOp()) + 
 								"}/*in{" + region.getIp() + "} out{" + region.getOp() + "}*/");
 					}else{
 						printer.print(",\n\t\t\t\t\t{" + getPortListNumber(region.getIp()) + "," + 
-								hexInC(Integer.toHexString((Integer.parseInt(region.getDownLeft())))) + "," + 
-								hexInC(Integer.toHexString((Integer.parseInt(region.getUpRight())))) + "," +
+								hexInC(region.getDownLeft()) + "," + hexInC(region.getUpRight()) + "," +
 								getPortListNumber(region.getOp()) + 
 								"}/*in{" + region.getIp() + "} out{" + region.getOp() + "}*/");
 					}
@@ -1460,7 +1458,7 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				while(i < max)
 				{
 					printer.println(",");
-					printer.print("\t\t\t\t\t{00000,0x00,0x00,00000}");
+					printer.print("\t\t\t\t\t{0,0x00,0x00,0}");
 					i++;
 				}
 				
@@ -1551,12 +1549,7 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 	 */
 	private String hexInC(String hex)
 	{
-		if(hex.length() < 2)
-		{
-			hex = "0x0" + hex;
-		}else{
-			hex = "0x" + hex;
-		}
-		return hex;
+		
+		return ("0x" + hex.charAt(0) + hex.charAt(1));		
 	}
 }
