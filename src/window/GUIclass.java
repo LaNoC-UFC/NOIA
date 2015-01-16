@@ -1440,15 +1440,17 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				{
 					if(i == 0)
 					{
-						printer.print("\t\t\t\t\t{" + region.getIp() + "," + 
+						printer.print("\t\t\t\t\t{" + getPortListNumber(region.getIp()) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getDownLeft())))) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getUpRight())))) + "," +
-								region.getOp() + "}");
+								getPortListNumber(region.getOp()) + 
+								"}/*in{" + region.getIp() + "} out{" + region.getOp() + "}*/");
 					}else{
-						printer.print(",\n\t\t\t\t\t{" + region.getIp() + "," + 
+						printer.print(",\n\t\t\t\t\t{" + getPortListNumber(region.getIp()) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getDownLeft())))) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getUpRight())))) + "," +
-								region.getOp() + "}");
+								getPortListNumber(region.getOp()) + 
+								"}/*in{" + region.getIp() + "} out{" + region.getOp() + "}*/");
 					}
 					
 //					printer.println("\t\t\t\t\tgetIp = " + region.getIp());
@@ -1458,7 +1460,7 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				while(i < max)
 				{
 					printer.println(",");
-					printer.print("\t\t\t\t\t{0,0x00,0x00,0}");
+					printer.print("\t\t\t\t\t{00000,0x00,0x00,00000}");
 					i++;
 				}
 				
@@ -1506,23 +1508,42 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 	 * @param s String port list.
 	 * @return The decimal number.
 	 */
-	private int getPortName(String s)
+	private int getPortListNumber(String s)
 	{
-		String position = "FIRST", binary = "";
-		int decimal = 0;
+		String binary = "";
+		String[] portList = {"0", "0", "0", "0", "0"};
+		
+		
 		for(int i = 0; i < s.length(); i++)
 		{
 			switch(s.charAt(i))
 			{
 			case 'I':
-				
+				portList[0] = "1";
+				break;
+			case 'S':
+				portList[1] = "1";
+				break;
+			case 'N':
+				portList[2] = "1";
+				break;
+			case 'W':
+				portList[3] = "1";
+				break;
+			case 'E':
+				portList[4] = "1";
 				break;
 			}
 		}
-		return decimal;
 		
+		for(int i = 0; i < 5; i++)
+		{
+			binary += portList[i];
+		}
+		
+		return Integer.parseInt(binary, 2);				
 	}
-		
+				
 	/**
 	 * Transform the java hexadecimal number to C hexadecimal number.
 	 * @param hex Decimal number.
