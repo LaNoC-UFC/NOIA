@@ -1150,9 +1150,9 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 			printer.println("\t\t{ /*vetor de metrics*/");
 			NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
 			DecimalFormat df = (DecimalFormat)nf;
-			printer.println("\t\t\t{" + doubleToInt(df.format(Rbr.getArd())) + "},");
-			printer.println("\t\t\t{" + doubleToInt(df.format(Rbr.LinkWeightMean())) + "},");
-			printer.println("\t\t\t{" + doubleToInt(df.format(Rbr.LingWeightStdDev())) + "}");
+			printer.println("\t\t\t" + doubleToInt(df.format(Rbr.getArd())) + ",");
+			printer.println("\t\t\t" + doubleToInt(df.format(Rbr.LinkWeightMean())) + ",");
+			printer.println("\t\t\t" + doubleToInt(df.format(Rbr.LingWeightStdDev())) + "");
 			printer.println("\t\t}");
 			
 			printer.print("\t}");
@@ -1440,15 +1440,15 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				{
 					if(i == 0)
 					{
-						printer.print("\t\t\t\t\t{" + getPortName("" + region.getIp().charAt(0)) + "," + 
+						printer.print("\t\t\t\t\t{" + region.getIp() + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getDownLeft())))) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getUpRight())))) + "," +
-								getPortName("" + region.getOp().charAt(0)) + "}");
+								region.getOp() + "}");
 					}else{
-						printer.print(",\n\t\t\t\t\t{" + getPortName("" + region.getIp().charAt(0)) + "," + 
+						printer.print(",\n\t\t\t\t\t{" + region.getIp() + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getDownLeft())))) + "," + 
 								hexInC(Integer.toHexString((Integer.parseInt(region.getUpRight())))) + "," +
-								getPortName("" + region.getOp().charAt(0)) + "}");
+								region.getOp() + "}");
 					}
 					
 //					printer.println("\t\t\t\t\tgetIp = " + region.getIp());
@@ -1458,7 +1458,7 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				while(i < max)
 				{
 					printer.println(",");
-					printer.print("\t\t\t\t\t{NULL,0xff,0xff,NULL}");
+					printer.print("\t\t\t\t\t{0,0x00,0x00,0}");
 					i++;
 				}
 				
@@ -1502,30 +1502,27 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 	}
 	
 	/**
-	 * Return the port name of the letter. 
-	 * @param s String letter.
-	 * @return The port name.
+	 * Return the integer related to the port list. 
+	 * @param s String port list.
+	 * @return The decimal number.
 	 */
-	private String getPortName(String s)
+	private int getPortName(String s)
 	{
-		switch(s)
+		String position = "FIRST", binary = "";
+		int decimal = 0;
+		for(int i = 0; i < s.length(); i++)
 		{
-		case "N": 
-			return "NORTH";
-		case "S":
-			return "SOUTH";
-		case "E":
-			return "EAST";
-		case "W":
-			return "WEST";
-		case "I":
-			return "LOCAL";
-		default:
-			return "UNKNOWN";
+			switch(s.charAt(i))
+			{
+			case 'I':
+				
+				break;
+			}
 		}
+		return decimal;
 		
 	}
-	
+		
 	/**
 	 * Transform the java hexadecimal number to C hexadecimal number.
 	 * @param hex Decimal number.
