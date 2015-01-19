@@ -1174,7 +1174,7 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 	private int doubleToInt(String s)
 	{
 		double d = Double.valueOf(s);
-		d = d * 10000;
+		d = d * 1000;
 		return (int) d;
 	}
 	
