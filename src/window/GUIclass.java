@@ -1440,12 +1440,12 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 				{
 					if(i == 0)
 					{
-						printer.print("\t\t\t\t\t{" + getPortListNumber(region.getIp()) + "," + 
+						printer.print("\t\t\t\t\t{" + getPortListNumber(region.getIp(), i) + "," + 
 								hexInC(region.getDownLeft()) + "," + hexInC(region.getUpRight()) + "," +
 								getPortListNumber(region.getOp()) + 
 								"}/*in{" + region.getIp() + "} out{" + region.getOp() + "}*/");
 					}else{
-						printer.print(",\n\t\t\t\t\t{" + getPortListNumber(region.getIp()) + "," + 
+						printer.print(",\n\t\t\t\t\t{" + getPortListNumber(region.getIp(), i) + "," + 
 								hexInC(region.getDownLeft()) + "," + hexInC(region.getUpRight()) + "," +
 								getPortListNumber(region.getOp()) + 
 								"}/*in{" + region.getIp() + "} out{" + region.getOp() + "}*/");
@@ -1455,10 +1455,10 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 //					printer.println("\t\t\t\t\tgetOp = " + region.getOp());
 					i++;
 				}
-				while(i < max)
+				while(i < maxReg)
 				{
 					printer.println(",");
-					printer.print("\t\t\t\t\t{0,0x00,0x00,0}");
+					printer.print("\t\t\t\t\t{0x0000,0x00,0x00,0}");
 					i++;
 				}
 				
@@ -1540,6 +1540,61 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		}
 		
 		return Integer.parseInt(binary, 2);				
+	}
+	
+	private String getPortListNumber(String s, int index)
+	{
+		String binary = "";
+		String[] portList = {"0", "0", "0", "0", "0"};
+		
+		
+		for(int i = 0; i < s.length(); i++)
+		{
+			switch(s.charAt(i))
+			{
+			case 'I':
+				portList[0] = "1";
+				break;
+			case 'S':
+				portList[1] = "1";
+				break;
+			case 'N':
+				portList[2] = "1";
+				break;
+			case 'W':
+				portList[3] = "1";
+				break;
+			case 'E':
+				portList[4] = "1";
+				break;
+			}
+		}
+		
+		for(int i = 0; i < 5; i++)
+		{
+			binary += portList[i];
+		}
+		
+		if((Integer.toHexString(index).length() < 2) && 
+				(Integer.toHexString(Integer.parseInt(binary, 2)).length() < 2))
+		{
+			return ("0x0" + Integer.toHexString(index) + 
+					Integer.toHexString(Integer.parseInt(binary, 2)));
+		}else if((Integer.toHexString(index).length() >= 2) && 
+				(Integer.toHexString(Integer.parseInt(binary, 2)).length() < 2))
+		{
+			return ("0x" + Integer.toHexString(index) + 
+					Integer.toHexString(Integer.parseInt(binary, 2)));
+		}else if((Integer.toHexString(index).length() < 2) && 
+				(Integer.toHexString(Integer.parseInt(binary, 2)).length() >= 2))
+		{
+			return ("0x0" + Integer.toHexString(index) +
+					Integer.toHexString(Integer.parseInt(binary, 2)));
+		}
+		
+		return ("0x" + Integer.toHexString(index) + 
+				Integer.toHexString(Integer.parseInt(binary, 2)));
+		
 	}
 				
 	/**
