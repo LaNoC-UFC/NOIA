@@ -84,7 +84,10 @@ public class RBR extends AbstractProgress
 		reportProgress(new ProgressEvent(75, "Doing Average Routing Distance and Link Weight..."));
 		simplePaths = tools.getSimplePaths(paths, graph);
 		
-		globalAr = tools.getAr(this.inputDir, simplePaths, this.Nct);
+		if(!(this.inputDir.equals("nonNCT") && (this.Nct < 0)))
+		{
+			globalAr = tools.getAr(this.inputDir, simplePaths, this.Nct);
+		}
 
 		//Make statistic file with hop count, regions, routing distance and link weight values 
 		LinkWeightStats = tools.linkWeightStats(simplePaths, graph);

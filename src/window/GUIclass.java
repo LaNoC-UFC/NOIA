@@ -2,6 +2,7 @@ package window;
 
 import java.awt.BorderLayout;
 import java.awt.CheckboxMenuItem;
+import java.awt.Color;
 import java.awt.Dialog.ModalityType;
 import java.awt.GridLayout;
 import java.awt.Insets;
@@ -15,8 +16,17 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.channels.FileChannel;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -82,6 +92,7 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 	private boolean firstInput;
 	private Insets insets;
 	private ProgressBar progressBar;
+	private int question;
 
 	public void reportProgress(ProgressEvent progress)
 	{
@@ -100,63 +111,86 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 //		setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("nIcon1.png")));		
 		
 		load(title, args);
+		
+		if(question == 0)
+		{
+			readLCFiles();
+		}
+		
 	}
 
 	private void load(String title, String[] args) {
 
-		fileChooser = new JFileChooser();
-		filter = new FileNameExtensionFilter("TXT file", "txt");
-		fileChooser.setFileFilter(filter);
-		fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
-		fileChooser.setCurrentDirectory(new File("."));
-		fileChooser.setDialogTitle("Choose the Topology File");
-		/****/
-		firstInput = true;
-		String file = (args.length < 1) ? selectFile(fileChooser) : args[0];
+		RBR rbr = null;
+		Segmentation sbr = null;
 		
-		//v2
-		fileChooser = new JFileChooser();
-		fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
-		fileChooser.setCurrentDirectory(new File("."));
-		fileChooser.setDialogTitle("Choose the Traffic Files Directory");
-		/****/
-		firstInput = true;
-		String file2 = (args.length < 1) ? selectDirectory(fileChooser) : args[0];
-		
-		String[] NctOptions = {"1", "2"};
-		int Nct = (JOptionPane.showOptionDialog(null, "Choose an Option:", "Nct", 
+		//seleciona o modo multi-cenario
+		question = JOptionPane.showOptionDialog(null, 
+				"Would you like to execute in multi-scenario mode?", 
+				"Multi-scenario mode", 
 				JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, 
-				null, NctOptions, null)) + 1;
-		//v2
+				null, null, null);
 		
-		createAndShowProgressBarGUI();
-
-		// Carregamento
-		Segmentation sbr = new Segmentation(file);
-		System.out.println("PATH: " + file2);
-		System.out.println("Nct: " + Nct);
-		RBR rbr = new RBR(file,"Restriction.txt", Nct, file2);
-
-		sbr.addProgressEventListener(this);
-		rbr.addProgressEventListener(this);
-
-		sbr.load();
-		rbr.load();
-
-		this.Rbr = rbr;
-		this.sBr = sbr;
-
-		JFrame one = new JFrame();
-		one.pack();
-		insets = one.getInsets();
-		one = null;
-
-		this.setSize(((int)Math.sqrt(this.Rbr.graphSize()) * Measures.SWITCH_FACE) 
+		if(question == 1)
+		{
+			fileChooser = new JFileChooser();
+			filter = new FileNameExtensionFilter("TXT file", "txt");
+			fileChooser.setFileFilter(filter);
+			fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+			fileChooser.setCurrentDirectory(new File("."));
+			fileChooser.setDialogTitle("Choose the Topology File");
+			/****/
+			firstInput = true;
+			String file = (args.length < 1) ? selectFile(fileChooser) : args[0];
+			
+			//v2
+			fileChooser = new JFileChooser();
+			fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+			fileChooser.setCurrentDirectory(new File("."));
+			fileChooser.setDialogTitle("Choose the Traffic Files Directory");
+			/****/
+			firstInput = true;
+			String file2 = (args.length < 1) ? selectDirectory(fileChooser) : args[0];
+			
+			String[] NctOptions = {"1", "2"};
+			int Nct = (JOptionPane.showOptionDialog(null, "Choose an Option:", "Nct", 
+					JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, 
+					null, NctOptions, null)) + 1;
+			//v2
+			
+			createAndShowProgressBarGUI();
+	
+			// Carregamento
+//			Segmentation sbr = new Segmentation(file);
+			sbr = new Segmentation(file);
+			System.out.println("PATH: " + file2);
+			System.out.println("Nct: " + Nct);
+//			RBR rbr = new RBR(file,"Restriction.txt", Nct, file2);
+			rbr = new RBR(file,"Restriction.txt", Nct, file2);
+	
+			sbr.addProgressEventListener(this);
+			rbr.addProgressEventListener(this);
+	
+			sbr.load();
+			rbr.load();
+	
+			this.Rbr = rbr;
+			this.sBr = sbr;
+	
+			JFrame one = new JFrame();
+			one.pack();
+			insets = one.getInsets();
+			one = null;
+		
+			this.setSize(((int)Math.sqrt(this.Rbr.graphSize()) * Measures.SWITCH_FACE) 
 				+ (((int)Math.sqrt(this.Rbr.graphSize()) - 1) * Measures.DISTANCE_BETWEEN_SWITCHES) 
 				+ (2 * Measures.SWITCH_DISTANCE_FROM_PANEL) + insets.right, 
 				((int)Math.sqrt(this.Rbr.graphSize()) * Measures.SWITCH_FACE) 
 				+ (((int)Math.sqrt(this.Rbr.graphSize()) - 1) * Measures.DISTANCE_BETWEEN_SWITCHES) 
 				+ (2 * Measures.SWITCH_DISTANCE_FROM_PANEL) + insets.top + 15);
+		}else{
+			this.setSize(300, 300);
+		}
 
 		JMenu fileMenu = new JMenu("File");
 		fileMenu.setMnemonic('F');
@@ -220,31 +254,34 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		JMenuItem scenarioInfo = new JMenuItem("Scenario Information");
 		scenarioInfo.setMnemonic('I');
 		viewMenu.add(scenarioInfo);
-		//pega o RMAX e ARD
-		rmax = 0; 
-		ardSum = 0; 
-		nARD = 0;
-		metrics((int) Math.sqrt(this.Rbr.graphSize()));
-		scenarioInfo.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
-				JOptionPane.showMessageDialog(new JFrame("Scenario Information"),
-						"Topology File Name: " + fileName + "\n" + 
-								"LW: " + String.format("%.3f", Rbr.LinkWeightMean()) + "\n" + 
-								"STD: " + String.format("%.3f", Rbr.LingWeightStdDev()) + "\n" +
-								"RMAX: " + rmax + "\n" + 
-								"ARD: " + String.format("%.3f", Rbr.getArd()) + "\n" + 
-								"Demaged Links: " + demagedLinks + 
-								"\nMinimum Reconfiguration Delay: " + String.format("%.3f", Rbr.getArMin()) + 
-								"\nMaximum Reconfiguration Delay: " + String.format("%.3f", Rbr.getArMax()) + 
-								"\nStandard Deviation of Reconfiguration Delay: " + String.format("%.3f", Rbr.getArStd()) + 
-								"\nMean Reconfiguration Delay: " + String.format("%.3f", Rbr.getAr()),
-								"Scenario Information",
-								JOptionPane.PLAIN_MESSAGE);
-			}
-		});
+		if(question == 1)
+		{
+			//pega o RMAX e ARD
+			rmax = 0; 
+			ardSum = 0; 
+			nARD = 0;
+			metrics((int) Math.sqrt(this.Rbr.graphSize()));
+			scenarioInfo.addActionListener(new ActionListener() {
+	
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					// TODO Auto-generated method stub
+					JOptionPane.showMessageDialog(new JFrame("Scenario Information"),
+							"Topology File Name: " + fileName + "\n" + 
+									"LW: " + String.format("%.3f", Rbr.LinkWeightMean()) + "\n" + 
+									"STD: " + String.format("%.3f", Rbr.LingWeightStdDev()) + "\n" +
+									"RMAX: " + rmax + "\n" + 
+									"ARD: " + String.format("%.3f", Rbr.getArd()) + "\n" + 
+									"Demaged Links: " + demagedLinks + 
+									"\nMinimum Reconfiguration Delay: " + String.format("%.3f", Rbr.getArMin()) + 
+									"\nMaximum Reconfiguration Delay: " + String.format("%.3f", Rbr.getArMax()) + 
+									"\nStandard Deviation of Reconfiguration Delay: " + String.format("%.3f", Rbr.getArStd()) + 
+									"\nMean Reconfiguration Delay: " + String.format("%.3f", Rbr.getAr()),
+									"Scenario Information",
+									JOptionPane.PLAIN_MESSAGE);
+				}
+			});
+		}
 		viewMenu.addSeparator();
 
 		//nomes dos checkboxes
@@ -295,15 +332,33 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 
 		bar.add(helpMenu);
 
-		drawArea = new Drawn(this.Rbr.graphSize(), setLinks(), sbr, rbr);
-		add(drawArea);
+		if(question == 1)
+		{
+			drawArea = new Drawn(this.Rbr.graphSize(), setLinks(), sbr, rbr);
+			add(drawArea);
+			
+			MouseHandler mouse = new MouseHandler();
+			drawArea.addMouseListener(mouse);
+			
+			//desativa o que nao existe
+			showOptions[3].setEnabled(drawArea.anyBridgeLink());
+			showOptions[4].setEnabled(drawArea.anyUnitary());
+		}else{
+			newScenario.setEnabled(false);
+			saveImage.setEnabled(false);
+			scenarioInfo.setEnabled(false);
+			showOptions[0].setEnabled(false);
+			showOptions[1].setEnabled(false);
+			showOptions[2].setEnabled(false);
+			showOptions[3].setEnabled(false);
+			showOptions[4].setEnabled(false);
+			showOptions[5].setEnabled(false);
+			showOptions[6].setEnabled(false);
+			showOptions[7].setEnabled(false);
+		}
+		
 
-		MouseHandler mouse = new MouseHandler();
-		drawArea.addMouseListener(mouse);
-
-		//desativa o que nao existe
-		showOptions[3].setEnabled(drawArea.anyBridgeLink());
-		showOptions[4].setEnabled(drawArea.anyUnitary());
+		
 		/*
 
 		segmentsCheckBox = new JCheckBox("Segments");
@@ -936,5 +991,620 @@ public class GUIclass extends JFrame implements ProgressEventListener {
 		//Display the window.
 		_progressBar.reset();
 		_progressFrame.setVisible(true);
+	}
+	
+	/**
+	 * Read and compute all LC files in a especified folder.
+	 */
+	private int readLCFiles()
+	{
+		//1 - listar todos os arquivos LC (feito)
+		//2 - processar cada arquivo (feito)
+				
+		File dir = new File("./LCs/");
+		File[] files = dir.listFiles();
+		
+		if(files != null)
+		{
+			try {
+				int maxRegions = getMaxRegions(files);
+				PrintWriter printer = new PrintWriter("srt.h", "UTF-8");
+				int n = 0;
+				printer.println("/*MAX REG = " + maxRegions + "*/");
+				createSTRFile(printer, "BEGINNING", n, maxRegions);
+				for(File input : files)
+				{
+					
+					RBR rbr = null;
+					Segmentation sbr = null;
+					
+					createAndShowProgressBarGUI();
+					
+					sbr = new Segmentation(input.getAbsolutePath());
+					System.out.println("LC: " + input.getName());
+					rbr = new RBR(input.getAbsolutePath(),"Restriction.txt", -90, "nonNCT");
+			
+					sbr.addProgressEventListener(this);
+					rbr.addProgressEventListener(this);
+			
+					sbr.load();
+					rbr.load();
+					System.out.println("The LC file " + input.getName() + " has been processed.");
+			
+					this.Rbr = rbr;
+					this.sBr = sbr;
+					
+					createSTRFile(printer, "MIDDLE", n, maxRegions);
+					
+					n++;
+				}
+				
+				System.out.println(n + " LC files processed.");
+				createSTRFile(printer, "END", n, maxRegions);
+				printer.close();
+				
+				return n;
+			
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.out.println("Could not create the file.");
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.out.println("UTF-8 encode format is not supported.");
+			}
+		}
+		
+		return (-1);
+	}
+	
+	/**
+	 * Used to count the maximum number of regions.
+	 * @param files Vector of files.
+	 * @return The maximum number of regions.
+	 */
+	private int getMaxRegions(File[] files)
+	{
+		int maximum = 0;
+		int counter = 0;
+		
+		for(File input : files)
+		{
+			RBR rbrz = null;
+			Segmentation sbrz = null;
+			
+			createAndShowProgressBarGUI();
+			
+			sbrz = new Segmentation(input.getAbsolutePath());
+			System.out.println("LC: " + input.getName());
+			rbrz = new RBR(input.getAbsolutePath(),"Restriction.txt", -90, "nonNCT");
+	
+			sbrz.addProgressEventListener(this);
+			rbrz.addProgressEventListener(this);
+	
+			sbrz.load();
+			rbrz.load();
+			System.out.println("The LC file " + input.getName() + " has been processed.");
+	
+			this.Rbr = rbrz;
+			this.sBr = sbrz;
+			
+			for(rbr.Router sw : Rbr.switches())
+			{
+				for(rbr.Region reg : sw.regions())
+				{
+					counter++;
+				}
+				if(counter > maximum)
+				{
+					maximum = counter;
+				}
+				counter = 0;
+			}
+		}
+		
+		return maximum;
+	}
+		
+	/**
+	 * Get all the information and write the srt.h file.
+	 * @param printer Object to write the file.
+	 * @param operation "BEGINNING" to write the header of file, 
+	 * "MIDDLE" to write the informations, "END" to write the end of file.
+	 * @param i Counter of number of LC files.
+	 */
+	private void createSTRFile(PrintWriter printer, String operation, int i, int maxRegions)
+	{
+		
+		//4 - montar o srt.h com as info salvas (feito)
+		switch(operation){
+		case "BEGINNING":
+			printer.println("#ifndef __SRT_H__");
+			printer.println("#define __SRT_H__\n");
+			printer.println("#include \"srtm_defs.h\"\n");
+			printer.println("struct scenarios_routing_table srt[] =\n{");
+			break;
+		case "MIDDLE":
+			if(i == 0){
+				printer.print("\t{");
+				printer.println("/* cenario " + i + " " + (int)Math.sqrt(Rbr.graphSize()) + 
+						"x" + (int)Math.sqrt(Rbr.graphSize()) + "*/");
+			}else{
+				printer.print(",\n\t{");
+				printer.println("/* cenario " + i + " " + (int)Math.sqrt(Rbr.graphSize()) + 
+						"x" + (int)Math.sqrt(Rbr.graphSize()) + "*/");
+			}
+			
+			printer.println("\t\t{/*vetor de gft*/");
+//			writeSwitches(printer);
+			printer.println("\t\t\t/*number of links: " + (int)(2 * (Math.sqrt(Rbr.graphSize()) * 
+					(Math.sqrt(Rbr.graphSize()) - 1))) + "*/");
+			writeScenarioLinks(printer);
+			printer.println("\t\t},");
+			
+			printer.println("\t\t{/*vetor de pxrt*/");
+			writeRegions(printer, maxRegions, maxRegions);
+			printer.println("\n\t\t},");
+			
+			printer.println("\t\t{ /*vetor de metrics*/");
+			NumberFormat nf = NumberFormat.getNumberInstance(Locale.ENGLISH);
+			DecimalFormat df = (DecimalFormat)nf;
+			printer.println("\t\t\t" + doubleToInt(df.format(Rbr.getArd())) + ",");
+			printer.println("\t\t\t" + doubleToInt(df.format(Rbr.LinkWeightMean())) + ",");
+			printer.println("\t\t\t" + doubleToInt(df.format(Rbr.LingWeightStdDev())) + "");
+			printer.println("\t\t}");
+			
+			printer.print("\t}");
+			break;
+		case "END":
+			printer.println("\n};\n");
+			printer.println("#endif");
+			break;
+		default:
+			System.out.println("-- Escrita de teste --");
+		}
+	}
+	
+	/**
+	 * Transform the double that already is in string format to an int times 10000.
+	 * @param s Number.
+	 * @return int value.
+	 */
+	private int doubleToInt(String s)
+	{
+		double d = Double.valueOf(s);
+		d = d * 1000;
+		return (int) d;
+	}
+	
+	/**
+	 * Print all the links in sequence.
+	 * @param printer The object to write in file.
+	 */
+	private void writeScenarioLinks(PrintWriter printer)
+	{
+		
+		int i = 0;
+		
+		for(int y = 0; y < Math.sqrt(Rbr.graphSize()); y++)
+		{
+			for(int x = 0; x < Math.sqrt(Rbr.graphSize()); x++)
+			{
+				i = writeLinkStatus(printer, i, false, x, y);
+			}
+		}
+		
+		for(int x = 0; x < Math.sqrt(Rbr.graphSize()); x++)
+		{
+			for(int y = 0; y < Math.sqrt(Rbr.graphSize()); y++)
+			{
+				i = writeLinkStatus(printer, i, true, x, y);
+			}
+		}
+		
+	}
+	
+	/**
+	 * Used to write all the links in order based on the parameters.
+	 * @param printer Object to write in file.
+	 * @param index Index of each link (0 - (Number of links - 1)).
+	 * @param orientation False, if horizontal. True if vertical.
+	 * @param x X coordinate.
+	 * @param y Y coordinate.
+	 * @return The index updated.
+	 */
+	private int writeLinkStatus(PrintWriter printer, int index, boolean orientation, int x, int y)
+	{
+		int nLinks = (int)((2 * (Math.sqrt(Rbr.graphSize()) * 
+				(Math.sqrt(Rbr.graphSize()) - 1))));
+		if((!orientation) && (x < (Math.sqrt(Rbr.graphSize()) - 1))) //west > east
+		{
+			for(rbr.Link ch : Rbr.links())
+			{
+				if(ch.getOrigem().getNome().equals("" + x + y) && 
+							ch.getDestino().getNome().equals("" + (x + 1) + y))
+				{
+					if(index < (nLinks - 1))
+					{
+						printer.println("\t\t\t{0,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
+					}else{
+						printer.println("\t\t\t{0,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
+					}
+					return (index + 1);
+				}
+			}
+			if(index < (nLinks - 1))
+			{
+				printer.println("\t\t\t{1,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
+			}else{
+				printer.println("\t\t\t{1,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + (x + 1) + y + "*/");
+			}
+			return (index + 1);
+			
+		}else if((orientation) && (y < (Math.sqrt(Rbr.graphSize()) - 1))){ //south -> north
+			for(rbr.Link ch : Rbr.links())
+			{
+				if(ch.getOrigem().getNome().equals("" + x + y) && 
+							ch.getDestino().getNome().equals("" + x + (y + 1)))
+				{
+					if(index < (nLinks - 1))
+					{
+						printer.println("\t\t\t{0,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
+					}else{
+						printer.println("\t\t\t{0,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
+					}
+					return (index + 1);
+				}
+			}
+			if(index < (nLinks - 1))
+			{
+				printer.println("\t\t\t{1,0,0,0}," + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
+			}else{
+				printer.println("\t\t\t{1,0,0,0}" + " /*[" + index + "] " + x + y + " -> " + x + (y + 1) + "*/");
+			}
+			return (index + 1);
+		}
+		return index;
+	}
+	
+	/**
+	 * Use to print the switches information.
+	 * @param printer Objecto to print in file.
+	 */
+	private void writeSwitches(PrintWriter printer)
+	{
+		
+		for(int y = 0; y < Math.sqrt(Rbr.graphSize()); y++)
+		{
+			for(int x = 0; x < Math.sqrt(Rbr.graphSize()); x++)
+			{
+				if((x == 0) && (y == 0))
+				{
+					printer.println("\t\t\t{/*switch " + sBr.get("" + x + y).getNome() + "*/");
+					printer.println("\t\t\t\t{");
+				}else{
+					printer.println(",\n\t\t\t{/*switch " + sBr.get("" + x + y).getNome() + "*/");
+					printer.println("\t\t\t\t{");
+				}
+				
+//				writeChannels(printer, sBr.get("" + x + y).getLinks(), x, y);
+				for(rbr.Link ch: Rbr.links())
+				{
+					printer.println("\t\t\t\t\t/*" + ch.getOrigem().getNome() + " -> " + ch.getDestino().getNome() + "*/");
+				}
+				printer.println("\t\t\t\t}");
+				printer.print("\t\t\t}");
+			}
+		}
+	}
+	
+	/**
+	 * Print the channels information of a switch.
+	 * @param printer Object to print in file.
+	 * @param links Links of a switch.
+	 * @param x X coordinate of the switch.
+	 * @param y Y coordinate of the switch.
+	 */
+	private void writeChannels(PrintWriter printer, Iterable<sbr.Link> links, int x, int y)
+	{
+		boolean brokenLink = true;
+		String[] actives = {"", "", "", ""};
+		int i = 0;
+		int n = 0;
+		
+		for(sbr.Link link : links)
+		{
+			if(link.getDestino().getNome().equals("" + (x + 1) + y))
+			{
+				actives[0] = link.getDestino().getNome();
+				n++;
+			}else if(link.getDestino().getNome().equals("" + (x - 1) + y))
+			{
+				actives[1] = link.getDestino().getNome();
+				n++;
+			}else if(link.getDestino().getNome().equals("" + x + (y + 1)))
+			{
+				actives[2] = link.getDestino().getNome();
+				n++;
+			}else if(link.getDestino().getNome().equals("" + x + (y - 1)))
+			{
+				actives[3] = link.getDestino().getNome();
+				n++;
+			}
+			
+		}
+		
+		for(i = 0; i < 4; i++)
+		{
+			if(actives[i].equals("" + (x - 1) + y))
+			{
+				printer.print("\t\t\t\t\t{1,0,0,0}");
+				if((n - 1) > 0)
+				{
+					printer.print(",");
+				}
+				printer.println(" /*" + x + y + 
+						" -> " + actives[i] + "*/");
+				n--;
+				brokenLink = false;
+			}else if(actives[i].equals("" + (x + 1) + y))
+			{
+				printer.print("\t\t\t\t\t{1,0,0,0}");
+				if((n - 1) > 0)
+				{
+					printer.print(",");
+				}
+				printer.println(" /*" + x + y + 
+						" -> " + actives[i] + "*/");
+				n--;
+				brokenLink = false;
+			}else if(actives[i].equals("" + x + (y + 1)))
+			{
+				printer.print("\t\t\t\t\t{1,0,0,0}");
+				if((n - 1) > 0)
+				{
+					printer.print(",");
+				}
+				printer.println(" /*" + x + y + 
+						" -> " + actives[i] + "*/");
+				n--;
+				brokenLink = false;
+			}else if(actives[i].equals("" + x + (y - 1)))
+			{
+				printer.println("\t\t\t\t\t{1,0,0,0} /*" + x + y + 
+						" -> " + actives[i] + "*/");
+				brokenLink = false;
+			}
+			
+			if(brokenLink)
+			{
+				switch(i)
+				{
+				case 0:
+					if((x + 1) < (Math.sqrt(Rbr.graphSize()) - 1))
+					{
+						printer.println("\t\t\t\t\t{0,0,0,0}, /*" + x + y +
+								" -> " + (x + 1) + y +"*/");
+					}
+					break;
+				case 1:
+					if((x - 1) > 0)
+					{
+						printer.println("\t\t\t\t\t{0,0,0,0}, /*" + x + y +
+								" -> " + (x - 1) + y +"*/");
+					}
+					break;
+				case 2:
+					if((y + 1) < (Math.sqrt(Rbr.graphSize()) - 1))
+					{
+						printer.println("\t\t\t\t\t{0,0,0,0}, /*" + x + y +
+								" -> " + x + (y + 1) +"*/");
+					}
+					break;
+				case 3:
+					if((y - 1) > 0)
+					{
+						printer.println("\t\t\t\t\t{0,0,0,0} /*" + x + y +
+								" -> " + x + (y - 1) +"*/");
+					}
+					break;
+				}
+			}
+			brokenLink = true;
+		}
+		
+	}
+	
+	/**
+	 * Write the regions of each switch.
+	 * @param printer Object the prints in a file.
+	 */
+	private void writeRegions(PrintWriter printer, int maxReg, int max)
+	{
+		for(int y = 0; y < Math.sqrt(Rbr.graphSize()); y++)
+		{
+			for(int x = 0; x < Math.sqrt(Rbr.graphSize()); x++)
+			{
+				if((x == 0) && (y == 0))
+				{
+					printer.println("\t\t\t{/*switch " + Rbr.get("" + x + y).getNome() + "*/");
+					printer.println("\t\t\t\t{");
+				}else{
+					printer.println(",\n\t\t\t{/*switch " + sBr.get("" + x + y).getNome() + "*/");
+					printer.println("\t\t\t\t{");
+				}
+				
+				int i = 0;
+				for(rbr.Region region : Rbr.get("" + x + y).regions())
+				{
+					if(i == 0)
+					{
+						printer.print("\t\t\t\t\t{" + getPortListNumber(region.getIp(), i) + "," + 
+								hexInC(region.getDownLeft()) + "," + hexInC(region.getUpRight()) + "," +
+								getPortListNumber(region.getOp()) + 
+								"}/*in{" + region.getIp() + "} out{" + region.getOp() + "}*/");
+					}else{
+						printer.print(",\n\t\t\t\t\t{" + getPortListNumber(region.getIp(), i) + "," + 
+								hexInC(region.getDownLeft()) + "," + hexInC(region.getUpRight()) + "," +
+								getPortListNumber(region.getOp()) + 
+								"}/*in{" + region.getIp() + "} out{" + region.getOp() + "}*/");
+					}
+					
+//					printer.println("\t\t\t\t\tgetIp = " + region.getIp());
+//					printer.println("\t\t\t\t\tgetOp = " + region.getOp());
+					i++;
+				}
+				while(i < maxReg)
+				{
+					printer.println(",");
+					printer.print("\t\t\t\t\t{0x0000,0x00,0x00,0}");
+					i++;
+				}
+				
+				printer.println("\n\t\t\t\t}");
+				printer.print("\n\t\t\t}");
+				if(i == maxReg)
+				{
+					copyFile(new File("./Table_package.vhd"), 
+							new File("./Table_package_MAX.vhd"));
+					
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Copy the specified file to another.
+	 * @param target Target file to be copied.
+	 * @param copyName Clone file name.
+	 */
+	private void copyFile(File target, File clone)
+	{
+		FileChannel input = null, output = null;
+		
+		try {
+			input = new FileInputStream(target).getChannel();
+			output = new FileOutputStream(clone).getChannel();
+			
+			output.transferFrom(input, 0, input.size());
+			
+			input.close();
+			output.close();
+			
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Return the integer related to the port list. 
+	 * @param s String port list.
+	 * @return The decimal number.
+	 */
+	private int getPortListNumber(String s)
+	{
+		String binary = "";
+		String[] portList = {"0", "0", "0", "0", "0"};
+		
+		
+		for(int i = 0; i < s.length(); i++)
+		{
+			switch(s.charAt(i))
+			{
+			case 'I':
+				portList[0] = "1";
+				break;
+			case 'S':
+				portList[1] = "1";
+				break;
+			case 'N':
+				portList[2] = "1";
+				break;
+			case 'W':
+				portList[3] = "1";
+				break;
+			case 'E':
+				portList[4] = "1";
+				break;
+			}
+		}
+		
+		for(int i = 0; i < 5; i++)
+		{
+			binary += portList[i];
+		}
+		
+		return Integer.parseInt(binary, 2);				
+	}
+	
+	private String getPortListNumber(String s, int index)
+	{
+		String binary = "";
+		String[] portList = {"0", "0", "0", "0", "0"};
+		
+		
+		for(int i = 0; i < s.length(); i++)
+		{
+			switch(s.charAt(i))
+			{
+			case 'I':
+				portList[0] = "1";
+				break;
+			case 'S':
+				portList[1] = "1";
+				break;
+			case 'N':
+				portList[2] = "1";
+				break;
+			case 'W':
+				portList[3] = "1";
+				break;
+			case 'E':
+				portList[4] = "1";
+				break;
+			}
+		}
+		
+		for(int i = 0; i < 5; i++)
+		{
+			binary += portList[i];
+		}
+		
+		if((Integer.toHexString(index).length() < 2) && 
+				(Integer.toHexString(Integer.parseInt(binary, 2)).length() < 2))
+		{
+			return ("0x0" + Integer.toHexString(index) + 
+					Integer.toHexString(Integer.parseInt(binary, 2)));
+		}else if((Integer.toHexString(index).length() >= 2) && 
+				(Integer.toHexString(Integer.parseInt(binary, 2)).length() < 2))
+		{
+			return ("0x" + Integer.toHexString(index) + 
+					Integer.toHexString(Integer.parseInt(binary, 2)));
+		}else if((Integer.toHexString(index).length() < 2) && 
+				(Integer.toHexString(Integer.parseInt(binary, 2)).length() >= 2))
+		{
+			return ("0x0" + Integer.toHexString(index) +
+					Integer.toHexString(Integer.parseInt(binary, 2)));
+		}
+		
+		return ("0x" + Integer.toHexString(index) + 
+				Integer.toHexString(Integer.parseInt(binary, 2)));
+		
+	}
+				
+	/**
+	 * Transform the java hexadecimal number to C hexadecimal number.
+	 * @param hex Decimal number.
+	 * @return Hexadecimal in C notation;
+	 */
+	private String hexInC(String hex)
+	{
+		
+		return ("0x" + hex.charAt(0) + hex.charAt(1));		
 	}
 }
